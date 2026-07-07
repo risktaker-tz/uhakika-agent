@@ -1,0 +1,49 @@
+name: UHAKIKA CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, custom/uhakika-agent-mvp]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uhakika-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validation:
+    name: Validate (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate Codex skill artifacts
+        run: bun run gen:skill-docs --host codex
+
+      - name: Validate UHAKIKA skill coverage
+        run: bun test test/skill-coverage-floor.test.ts test/skill-coverage-matrix.test.ts
+
+      - name: Validate docs and release guards
+        run: bun test test/parity-suite.test.ts test/template-context-parity.test.ts
+
+      - name: Windows-safe test shard smoke
+        if: runner.os == 'Windows'
+        shell: bash
+        run: bun run scripts/test-free-shards.ts --windows-only --shards 20 --shard 18
+

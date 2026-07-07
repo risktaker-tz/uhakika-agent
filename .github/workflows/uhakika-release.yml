@@ -1,0 +1,80 @@
+name: UHAKIKA Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, without the uhakika-v prefix
+        required: true
+        type: string
+      prerelease:
+        description: Mark the GitHub release as a prerelease
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: uhakika-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Publish signed-tag release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Validate release input
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          case "$VERSION" in
+            ''|*[!0-9.]*)
+              echo "Version must contain only digits and dots, for example 1.58.5.1" >&2
+              exit 1
+              ;;
+          esac
+          echo "TAG=uhakika-v$VERSION" >> "$GITHUB_ENV"
+
+      - name: Require existing signed tag
+        run: |
+          set -euo pipefail
+          git fetch --tags origin
+          git rev-parse "$TAG^{tag}" >/dev/null
+          git cat-file tag "$TAG" | grep -q "BEGIN PGP SIGNATURE"
+          git tag -v "$TAG" || echo "Signature packet is present; public key trust is not available on this runner."
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+
+      - name: Run free validation
+        run: bun run test:free
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [ "$PRERELEASE" = "true" ]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$TAG" \
+            --title "UHAKIKA AGENT $TAG" \
+            --notes "Verification-first UHAKIKA AGENT release. See repository docs for install, sync, and validation guidance." \
+            "${args[@]}"

@@ -2,14 +2,18 @@
 name: gstack
 preamble-tier: 1
 version: 1.2.0
-description: Router for the gstack skill suite. (gstack)
+description: Router for the UHAKIKA AGENT skill suite. Uses the legacy gstack command name for compatibility.
 allowed-tools:
   - Bash
   - Read
   - AskUserQuestion
 triggers:
   - gstack
+  - uhakika
+  - uhakika agent
+  - which uhakika skill
   - which gstack skill
+  - route this with uhakika
   - route this with gstack
 
 ---
@@ -19,10 +23,10 @@ triggers:
 
 ## When to invoke this skill
 
-Sends any gstack request to the right skill
+Sends any UHAKIKA AGENT request to the right skill
 (planning, review, QA, shipping, debugging, docs, security, design). For browser/QA
-and dogfooding it points you at /browse. Use when you invoke gstack without a specific
-skill, or ask "which gstack skill fits this?".
+and verification it points you at /browse. Use when you invoke UHAKIKA AGENT without a specific
+skill, or ask "which UHAKIKA skill fits this?". The `gstack` name remains the runtime compatibility alias.
 
 ## Preamble (run first)
 

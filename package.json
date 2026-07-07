@@ -1,7 +1,7 @@
 {
-  "name": "gstack",
+  "name": "uhakika-agent",
   "version": "1.58.5.0",
-  "description": "Garry's Stack — Claude Code skills + fast headless browser. One repo, one install, entire AI engineering workflow.",
+  "description": "UHAKIKA AGENT - verification-first AI agent operating system for disciplined multi-agent delivery workflows.",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -62,13 +62,13 @@
     "bun": ">=1.0.0"
   },
   "keywords": [
-    "browser",
-    "automation",
-    "playwright",
-    "headless",
-    "cli",
-    "claude",
     "ai-agent",
+    "verification",
+    "workflow",
+    "automation",
+    "multi-agent",
+    "security",
+    "qa",
     "devtools"
   ],
   "devDependencies": {

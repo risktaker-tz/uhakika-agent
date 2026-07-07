@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# gstack setup — build browser binary + register skills with Claude Code / Codex
+# UHAKIKA AGENT setup — build browser binary + register skills with Claude Code / Codex.
+# Legacy gstack paths and command names are retained for compatibility.
 set -e
 umask 077  # Restrict new files to owner-only (0o600 files, 0o700 dirs)
 
@@ -105,11 +106,11 @@ case "$HOST" in
   openclaw)
     echo ""
     echo "OpenClaw integration uses a different model — OpenClaw spawns Claude Code"
-    echo "sessions natively via ACP. gstack provides methodology artifacts, not a"
+    echo "sessions natively via ACP. UHAKIKA AGENT provides methodology artifacts, not a"
     echo "full skill installation."
     echo ""
-    echo "To integrate gstack with OpenClaw:"
-    echo "  1. Tell your OpenClaw agent: 'install gstack for openclaw'"
+    echo "To integrate UHAKIKA AGENT with OpenClaw:"
+    echo "  1. Tell your OpenClaw agent: 'install UHAKIKA AGENT for openclaw'"
     echo "  2. Or generate artifacts: bun run gen:skill-docs --host openclaw"
     echo "  3. See docs/OPENCLAW.md for the full architecture"
     echo ""
@@ -117,10 +118,10 @@ case "$HOST" in
   hermes)
     echo ""
     echo "Hermes integration uses the same model as OpenClaw — Hermes spawns"
-    echo "Claude Code sessions, and gstack provides methodology artifacts."
+    echo "Claude Code sessions, and UHAKIKA AGENT provides methodology artifacts."
     echo ""
-    echo "To integrate gstack with Hermes:"
-    echo "  1. Tell your Hermes agent: 'install gstack for hermes'"
+    echo "To integrate UHAKIKA AGENT with Hermes:"
+    echo "  1. Tell your Hermes agent: 'install UHAKIKA AGENT for hermes'"
     echo "  2. Or generate artifacts: bun run gen:skill-docs --host hermes"
     echo ""
     exit 0 ;;
@@ -155,13 +156,13 @@ if [ "$SKILL_PREFIX_FLAG" -eq 0 ]; then
       SKILL_PREFIX=0
     elif [ -t 0 ]; then
       echo ""
-      echo "Skill naming: how should gstack skills appear?"
+    echo "Skill naming: how should UHAKIKA AGENT skills appear?"
       echo ""
       echo "  1) Short names: /qa, /ship, /review"
       echo "     Recommended. Clean and fast to type."
       echo ""
       echo "  2) Namespaced: /gstack-qa, /gstack-ship, /gstack-review"
-      echo "     Use this if you run other skill packs alongside gstack to avoid conflicts."
+      echo "     Use this if you run other skill packs alongside UHAKIKA AGENT to avoid conflicts."
       echo ""
       printf "Choice [1/2] (default: 1, auto-selects in 10s): "
       read -t 10 -r _prefix_choice </dev/tty 2>/dev/null || _prefix_choice=""
@@ -232,7 +233,7 @@ migrate_direct_codex_install() {
 
   mkdir -p "$(dirname "$migrated_dir")"
   if [ -e "$migrated_dir" ] && [ "$migrated_dir" != "$gstack_dir" ]; then
-    echo "gstack setup failed: direct Codex install detected at $gstack_dir" >&2
+  echo "UHAKIKA AGENT setup failed: direct Codex install detected at $gstack_dir" >&2
     echo "A migrated repo already exists at $migrated_dir; move one of them aside and rerun setup." >&2
     exit 1
   fi
@@ -340,7 +341,7 @@ refresh_browse_daemon_for_fonts() {
     "$BROWSE_BIN" stop >/dev/null 2>&1 || true
   fi
   echo "  Installed a color-emoji font. The next make-pdf render will show emoji."
-  echo "  If a gstack browser is running in another project, restart it to pick up the font."
+  echo "  If a UHAKIKA AGENT browser is running in another project, restart it to pick up the font."
 }
 
 prepare_bun_for_windows_compile() {
@@ -434,7 +435,7 @@ if [ "$NEEDS_BUILD" -eq 1 ]; then
 fi
 
 if [ ! -x "$BROWSE_BIN" ]; then
-  echo "gstack setup failed: browse binary missing at $BROWSE_BIN" >&2
+  echo "UHAKIKA AGENT setup failed: browse binary missing at $BROWSE_BIN" >&2
   exit 1
 fi
 
@@ -487,7 +488,7 @@ if ! ensure_playwright_browser; then
     # On Windows, Node.js launches Chromium (not Bun — see oven-sh/bun#4253).
     # Ensure playwright is importable by Node from the gstack directory.
     if ! command -v node >/dev/null 2>&1; then
-      echo "gstack setup failed: Node.js is required on Windows (Bun cannot launch Chromium due to a pipe bug)" >&2
+      echo "UHAKIKA AGENT setup failed: Node.js is required on Windows (Bun cannot launch Chromium due to a pipe bug)" >&2
       echo "  Install Node.js: https://nodejs.org/" >&2
       exit 1
     fi
@@ -506,11 +507,11 @@ fi
 
 if ! ensure_playwright_browser; then
   if [ "$IS_WINDOWS" -eq 1 ]; then
-    echo "gstack setup failed: Playwright Chromium could not be launched via Node.js" >&2
+    echo "UHAKIKA AGENT setup failed: Playwright Chromium could not be launched via Node.js" >&2
     echo "  This is a known issue with Bun on Windows (oven-sh/bun#4253)." >&2
     echo "  Ensure Node.js is installed and 'node -e \"require('playwright')\"' works." >&2
   else
-    echo "gstack setup failed: Playwright Chromium could not be launched" >&2
+    echo "UHAKIKA AGENT setup failed: Playwright Chromium could not be launched" >&2
   fi
   exit 1
 fi
@@ -1009,10 +1010,10 @@ if [ "$INSTALL_CLAUDE" -eq 1 ]; then
       _link_or_copy "gstack/open-gstack-browser" "$_OGB_LINK"
     fi
     if [ "$LOCAL_INSTALL" -eq 1 ]; then
-      log "gstack ready (project-local)."
+      log "UHAKIKA AGENT ready (project-local)."
       log "  skills: $INSTALL_SKILLS_DIR"
     else
-      log "gstack ready (claude)."
+      log "UHAKIKA AGENT ready (claude)."
     fi
     log "  browse: $BROWSE_BIN"
   else
@@ -1048,7 +1049,7 @@ if [ "$INSTALL_CLAUDE" -eq 1 ]; then
       log "  To register this worktree as the active gstack, remove the global"
       log "  install first:  rm -rf $CLAUDE_GSTACK_LINK"
       log ""
-      log "gstack built (claude registration skipped)."
+      log "UHAKIKA AGENT built (claude registration skipped)."
       log "  browse: $BROWSE_BIN"
     else
       mkdir -p "$CLAUDE_SKILLS_DIR"
@@ -1076,7 +1077,7 @@ if [ "$INSTALL_CLAUDE" -eq 1 ]; then
       if [ -L "$_OGB_LINK" ] || [ ! -e "$_OGB_LINK" ]; then
         _link_or_copy "gstack/open-gstack-browser" "$_OGB_LINK"
       fi
-      log "gstack ready (claude)."
+      log "UHAKIKA AGENT ready (claude)."
       log "  browse: $BROWSE_BIN"
     fi
   fi
@@ -1098,7 +1099,7 @@ if [ "$INSTALL_CODEX" -eq 1 ]; then
   # Install generated Codex-format skills (not Claude source dirs)
   link_codex_skill_dirs "$SOURCE_GSTACK_DIR" "$CODEX_SKILLS"
 
-  log "gstack ready (codex)."
+  log "UHAKIKA AGENT ready (codex)."
   log "  browse: $BROWSE_BIN"
   log "  codex skills: $CODEX_SKILLS"
 fi
@@ -1167,7 +1168,7 @@ if [ "$INSTALL_KIRO" -eq 1 ]; then
         done
       fi
     done
-    echo "gstack ready (kiro)."
+    echo "UHAKIKA AGENT ready (kiro)."
     echo "  browse: $BROWSE_BIN"
     echo "  kiro skills: $KIRO_SKILLS"
   fi
@@ -1178,7 +1179,7 @@ if [ "$INSTALL_FACTORY" -eq 1 ]; then
   mkdir -p "$FACTORY_SKILLS"
   create_factory_runtime_root "$SOURCE_GSTACK_DIR" "$FACTORY_GSTACK"
   link_factory_skill_dirs "$SOURCE_GSTACK_DIR" "$FACTORY_SKILLS"
-  echo "gstack ready (factory)."
+  echo "UHAKIKA AGENT ready (factory)."
   echo "  browse: $BROWSE_BIN"
   echo "  factory skills: $FACTORY_SKILLS"
 fi
@@ -1188,7 +1189,7 @@ if [ "$INSTALL_OPENCODE" -eq 1 ]; then
   mkdir -p "$OPENCODE_SKILLS"
   create_opencode_runtime_root "$SOURCE_GSTACK_DIR" "$OPENCODE_GSTACK"
   link_opencode_skill_dirs "$SOURCE_GSTACK_DIR" "$OPENCODE_SKILLS"
-  echo "gstack ready (opencode)."
+  echo "UHAKIKA AGENT ready (opencode)."
   echo "  browse: $BROWSE_BIN"
   echo "  opencode skills: $OPENCODE_SKILLS"
 fi
@@ -1230,7 +1231,7 @@ fi
 # 9. First-time welcome + legacy cleanup
 if [ ! -f "$HOME/.gstack/.welcome-seen" ]; then
   log ""
-  log "  gstack is ready. First move:"
+  log "  UHAKIKA AGENT is ready. First move:"
   log "    New idea / empty repo?   /office-hours  or  /spec"
   log "    Existing code?           /qa  to see it work, or  /investigate"
   log "  (Run /gstack-upgrade anytime to stay current)"
@@ -1257,7 +1258,7 @@ if [ "$TEAM_MODE" -eq 1 ]; then
   fi
 
   log ""
-  log "Team mode enabled: gstack will auto-update at the start of each Claude Code session."
+  log "Team mode enabled: UHAKIKA AGENT will auto-update at the start of each Claude Code session."
   log "  Hook: $HOOK_CMD"
   log "  To disable: ./setup --no-team"
   log ""
@@ -1525,7 +1526,7 @@ fi
 _GSTACK_CFG_FILE="${GSTACK_HOME:-$HOME/.gstack}/config.yaml"
 if ! grep -q '^redact_prepush_hook:' "$_GSTACK_CFG_FILE" 2>/dev/null; then
   log ""
-  log "Tip: gstack can block pushes containing credentials (per-repo git hook)."
+  log "Tip: UHAKIKA AGENT can block pushes containing credentials (per-repo git hook)."
   log "     Enable once: gstack-config set redact_prepush_hook true — /ship"
   log "     installs the hook automatically in every repo you ship from."
 fi

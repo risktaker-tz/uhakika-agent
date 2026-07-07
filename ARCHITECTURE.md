@@ -433,3 +433,34 @@ Tier 1 runs on every `bun test`. Tiers 2+3 are gated behind `EVALS=1`. The idea:
 - **No multi-user support.** One server per workspace, one user. The token auth is defense-in-depth, not multi-tenancy.
 - **No Windows/Linux cookie decryption.** macOS Keychain is the only supported credential store. Linux (GNOME Keyring/kwallet) and Windows (DPAPI) are architecturally possible but not implemented.
 - **No iframe auto-discovery.** `$B frame` supports cross-frame interaction (CSS selector, @ref, `--name`, `--url` matching), but the ref system does not auto-crawl iframes during `snapshot`. You must explicitly enter a frame context first.
+# Architecture
+
+## Overview
+
+Use this section to summarize the active project's architecture. Keep it current as decisions change.
+
+## Components
+
+List major components and their responsibilities.
+
+## Data Flow
+
+Describe how data, control, and artifacts move through the system.
+
+## External Dependencies
+
+List external services, libraries, infrastructure, and host tools.
+
+## Security Boundaries
+
+Document trust boundaries, privileged operations, secrets, authentication, authorization, and approval requirements.
+
+## Failure Modes
+
+List expected failure modes and how the system should degrade, recover, or alert.
+
+## Scaling Notes
+
+Capture known limits, scaling assumptions, and future pressure points.
+
+---

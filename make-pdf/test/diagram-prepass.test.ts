@@ -293,7 +293,14 @@ describe("inlineLocalImages", () => {
     fs.writeFileSync(path.join(outside, "secret.png"), tinyPng(5, 5));
     const link = path.join(dir, "innocent.png");
     try {
-      fs.symlinkSync(path.join(outside, "secret.png"), link);
+      try {
+        fs.symlinkSync(path.join(outside, "secret.png"), link);
+      } catch (e) {
+        if (process.platform === "win32" && (e as NodeJS.ErrnoException).code === "EPERM") {
+          return;
+        }
+        throw e;
+      }
       const warnings: string[] = [];
       inlineLocalImages(`<img src="innocent.png">`, { ...base, warn: (m) => warnings.push(m) });
       expect(warnings.some((w) => w.includes("OUTSIDE the input directory"))).toBe(true);

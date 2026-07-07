@@ -78,10 +78,10 @@ describe('directiveFor — per-session-kind instruction', () => {
 
 /** Spawn the hook with synthetic stdin + controlled env; parse its JSON stdout. */
 function runHook(stdin: object, env: Record<string, string>): { additionalContext?: string } {
-  const res = spawnSync('bun', [HOOK], {
+  const res = spawnSync(process.execPath, [HOOK], {
     input: JSON.stringify(stdin),
     encoding: 'utf-8',
-    env: { PATH: process.env.PATH ?? '/usr/bin:/bin', ...env },
+    env: { ...process.env, ...env },
   });
   const parsed = JSON.parse(res.stdout || '{}');
   return parsed.hookSpecificOutput ?? {};

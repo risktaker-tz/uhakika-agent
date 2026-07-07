@@ -6,6 +6,7 @@ import * as os from 'os';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 const SETUP_SCRIPT = path.join(ROOT, 'setup');
+const testPosix = process.platform === 'win32' ? test.skip : test;
 
 describe('setup: Conductor worktree guard', () => {
   test('setup contains the real-dir guard before the symlink-or-copy into ~/.claude/skills/', () => {
@@ -35,7 +36,7 @@ describe('setup: Conductor worktree guard', () => {
   // Reproduce the BSD/macOS `ln -snf` behavior that caused the bug, then
   // confirm the guard avoids it. This is a behavioral test of the guard logic
   // running in an isolated tmpdir — not the full setup script.
-  test('BSD ln -snf into an existing real dir creates a child symlink (bug reproduces)', () => {
+  testPosix('BSD ln -snf into an existing real dir creates a child symlink (bug reproduces)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-setup-guard-'));
     try {
       const source = path.join(tmp, 'source-worktree');
@@ -58,7 +59,7 @@ describe('setup: Conductor worktree guard', () => {
     }
   });
 
-  test('guard logic refuses to ln when dest is a real dir pointing elsewhere', () => {
+  testPosix('guard logic refuses to ln when dest is a real dir pointing elsewhere', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-setup-guard-'));
     try {
       const source = path.join(tmp, 'source-worktree');
@@ -96,7 +97,7 @@ describe('setup: Conductor worktree guard', () => {
     }
   });
 
-  test('guard allows ln when dest does not exist (fresh install path)', () => {
+  testPosix('guard allows ln when dest does not exist (fresh install path)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-setup-guard-'));
     try {
       const source = path.join(tmp, 'source-worktree');
@@ -130,7 +131,7 @@ describe('setup: Conductor worktree guard', () => {
     }
   });
 
-  test('guard allows ln when dest is an existing symlink (upgrade-in-place path)', () => {
+  testPosix('guard allows ln when dest is an existing symlink (upgrade-in-place path)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-setup-guard-'));
     try {
       const source = path.join(tmp, 'new-source');
@@ -168,7 +169,7 @@ describe('setup: Conductor worktree guard', () => {
     }
   });
 
-  test('guard allows ln when dest is a real dir already pointing to source (self-rerun)', () => {
+  testPosix('guard allows ln when dest is a real dir already pointing to source (self-rerun)', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-setup-guard-'));
     try {
       const source = path.join(tmp, 'source-worktree');

@@ -200,7 +200,7 @@ describe('context-save: filename collision', () => {
     // Path must differ (append-only contract).
     expect(kv.FILE).not.toBe(`${tmp}/20260419-120000-foo.md`);
     // Suffix format: base-XXXX.md where XXXX matches the suffix allowlist.
-    expect(kv.FILE).toMatch(new RegExp(`^${tmp.replace(/[/.]/g, '\\$&')}/20260419-120000-foo-[a-z0-9]+\\.md$`));
+    expect(kv.FILE).toMatch(new RegExp(`^${tmp.replace(/[\\/.]/g, '\\$&')}[/\\\\]20260419-120000-foo-[a-z0-9]+\\.md$`));
   });
 
   test('collision suffix preserves append-only — prior file intact', () => {
@@ -314,7 +314,9 @@ describe('context-restore: find + sort + head cap', () => {
 
 // ─── Migration HOME guard ──────────────────────────────────────────────────
 
-describe('migration v1.1.3.0: HOME guard', () => {
+const describePosix = process.platform === 'win32' ? describe.skip : describe;
+
+describePosix('migration v1.1.3.0: HOME guard', () => {
   let tmp: string;
   const MIGRATION = path.join(ROOT, 'gstack-upgrade', 'migrations', 'v1.1.3.0.sh');
 

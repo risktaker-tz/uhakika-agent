@@ -86,6 +86,7 @@ export function pickFreeDisplay(
  * is gone or ps fails.
  */
 export function readPidStartTime(pid: number): string {
+  if (process.platform === 'win32') return '';
   if (!isProcessAlive(pid)) return '';
   const result = Bun.spawnSync(['ps', '-p', String(pid), '-o', 'lstart='], {
     stdout: 'pipe', stderr: 'pipe', timeout: 2000,

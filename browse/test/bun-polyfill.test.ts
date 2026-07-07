@@ -3,14 +3,17 @@ import * as path from 'path';
 
 // Load the polyfill into a fresh object (don't clobber globalThis.Bun)
 const polyfillPath = path.resolve(import.meta.dir, '../src/bun-polyfill.cjs');
+const NODE = process.platform === 'win32' ? 'node.exe' : 'node';
+const POLYFILL_MODULE = JSON.stringify(polyfillPath);
+const NODE_LITERAL = JSON.stringify(NODE);
 
 describe('bun-polyfill', () => {
   // We test the polyfill by requiring it in a subprocess under Node.js
   // since it's designed for Node, not Bun.
 
   test('Bun.sleep resolves after delay', async () => {
-    const result = Bun.spawnSync(['node', '-e', `
-      require('${polyfillPath}');
+    const result = Bun.spawnSync([NODE, '-e', `
+      require(${POLYFILL_MODULE});
       (async () => {
         const start = Date.now();
         await Bun.sleep(50);
@@ -23,9 +26,9 @@ describe('bun-polyfill', () => {
   });
 
   test('Bun.spawnSync runs a command and returns stdout', () => {
-    const result = Bun.spawnSync(['node', '-e', `
-      require('${polyfillPath}');
-      const r = Bun.spawnSync(['echo', 'hello'], { stdout: 'pipe' });
+    const result = Bun.spawnSync([NODE, '-e', `
+      require(${POLYFILL_MODULE});
+      const r = Bun.spawnSync([${NODE_LITERAL}, '-e', 'console.log("hello")'], { stdout: 'pipe' });
       console.log(r.stdout.toString().trim());
       console.log('exit:' + r.exitCode);
     `], { stdout: 'pipe', stderr: 'pipe' });
@@ -35,9 +38,9 @@ describe('bun-polyfill', () => {
   });
 
   test('Bun.spawn launches a process with pid', async () => {
-    const result = Bun.spawnSync(['node', '-e', `
-      require('${polyfillPath}');
-      const p = Bun.spawn(['echo', 'test'], { stdio: ['pipe', 'pipe', 'pipe'] });
+    const result = Bun.spawnSync([NODE, '-e', `
+      require(${POLYFILL_MODULE});
+      const p = Bun.spawn([${NODE_LITERAL}, '-e', 'setTimeout(() => {}, 1000)'], { stdio: ['pipe', 'pipe', 'pipe'] });
       console.log(typeof p.pid === 'number' ? 'HAS_PID' : 'NO_PID');
       console.log(typeof p.kill === 'function' ? 'HAS_KILL' : 'NO_KILL');
       console.log(typeof p.unref === 'function' ? 'HAS_UNREF' : 'NO_UNREF');
@@ -49,8 +52,8 @@ describe('bun-polyfill', () => {
   });
 
   test('Bun.serve creates an HTTP server that responds', async () => {
-    const result = Bun.spawnSync(['node', '-e', `
-      require('${polyfillPath}');
+    const result = Bun.spawnSync([NODE, '-e', `
+      require(${POLYFILL_MODULE});
       const server = Bun.serve({
         port: 0,  // Note: polyfill uses port directly, so we pick one
         hostname: '127.0.0.1',

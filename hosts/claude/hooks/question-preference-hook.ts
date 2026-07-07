@@ -39,7 +39,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { spawnSync } from 'child_process';
+import { fileURLToPath } from 'url';
 import { isConductor } from '../../../lib/is-conductor';
 
 interface HookStdin {
@@ -223,7 +223,7 @@ function loadRegistry(): Record<string, RegistryEntry> {
   registryCache = {};
   try {
     // Hook lives at hosts/claude/hooks/; registry at scripts/question-registry.ts
-    const here = path.dirname(new URL(import.meta.url).pathname);
+    const here = path.dirname(fileURLToPath(import.meta.url));
     const repoRoot = path.resolve(here, '..', '..', '..');
     const regPath = path.join(repoRoot, 'scripts', 'question-registry.ts');
     if (!fs.existsSync(regPath)) return registryCache;
@@ -317,9 +317,6 @@ function logAutoDecided(
   cwd: string | undefined,
 ): void {
   try {
-    const here = path.dirname(new URL(import.meta.url).pathname);
-    const repoRoot = path.resolve(here, '..', '..', '..');
-    const bin = path.join(repoRoot, 'bin', 'gstack-question-log');
     const payload: Record<string, unknown> = {
       skill: 'unknown',
       question_id: questionId,
@@ -330,15 +327,13 @@ function logAutoDecided(
       source: 'auto-decided',
       session_id: sessionId?.slice(0, 64),
       tool_use_id: toolUseId?.slice(0, 128),
+      ts: new Date().toISOString(),
     };
-    spawnSync(bin, [JSON.stringify(payload)], {
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-      timeout: 3000,
-      // cwd of the originating tool call so gstack-slug resolves to the
-      // project the user is actually in, not the hook script's location.
-      cwd: cwd && fs.existsSync(cwd) ? cwd : undefined,
-    });
+    const slug = slugFromCwd(cwd);
+    const dir = path.join(stateRoot(), 'projects', slug);
+    fs.mkdirSync(dir, { recursive: true });
+    const logFile = path.join(dir, 'question-log.jsonl');
+    fs.appendFileSync(logFile, JSON.stringify(payload) + '\n');
   } catch (e) {
     logHookError(`logAutoDecided failed: ${(e as Error).message}`);
   }

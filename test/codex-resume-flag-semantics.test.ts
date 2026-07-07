@@ -15,19 +15,28 @@
 import { describe, test, expect } from 'bun:test';
 import { spawnSync } from 'child_process';
 
-const codexPath = spawnSync('which', ['codex'], { encoding: 'utf-8' }).stdout.trim();
-const codexAvailable = codexPath.length > 0;
+function findCommand(name: string): string {
+  const probe = process.platform === 'win32'
+    ? spawnSync('where.exe', [name], { encoding: 'utf-8' })
+    : spawnSync('which', [name], { encoding: 'utf-8' });
+  return (probe.stdout ?? '').split(/\r?\n/)[0]?.trim() ?? '';
+}
+
+const codexPath = findCommand('codex');
+const helpProbe = codexPath
+  ? spawnSync(codexPath, ['exec', 'resume', '--help'], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 10_000,
+    })
+  : null;
+const codexAvailable = ((helpProbe?.stdout || '') + (helpProbe?.stderr || '')).trim().length > 0;
 
 describe.skipIf(!codexAvailable)(
   'codex exec resume — flag semantics (live CLI smoke; closes #1270 regex-only gap)',
   () => {
     test('codex exec resume --help mentions sandbox_mode as a -c config key', () => {
-      const result = spawnSync('codex', ['exec', 'resume', '--help'], {
-        encoding: 'utf-8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-        timeout: 10_000,
-      });
-      const helpText = (result.stdout || '') + '\n' + (result.stderr || '');
+      const helpText = (helpProbe?.stdout || '') + '\n' + (helpProbe?.stderr || '');
       // The /codex skill builds resume invocations with `-c 'sandbox_mode="read-only"'`.
       // If codex stops accepting `-c sandbox_mode=...` for the resume subcommand,
       // every resume invocation through gstack starts failing.
@@ -35,12 +44,7 @@ describe.skipIf(!codexAvailable)(
     });
 
     test('codex exec resume --help does NOT advertise -C as a top-level flag', () => {
-      const result = spawnSync('codex', ['exec', 'resume', '--help'], {
-        encoding: 'utf-8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-        timeout: 10_000,
-      });
-      const helpText = (result.stdout || '') + '\n' + (result.stderr || '');
+      const helpText = (helpProbe?.stdout || '') + '\n' + (helpProbe?.stderr || '');
       // The whole point of #1270 was that `codex exec resume` rejects `-C <dir>`.
       // If the help text starts listing `-C` again, the SKILL.md guidance to
       // drop `-C` is wrong and the surrounding `cd "$_REPO_ROOT"` workaround is

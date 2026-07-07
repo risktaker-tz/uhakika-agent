@@ -6,6 +6,7 @@ import * as os from 'os';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 const MIGRATION = path.join(ROOT, 'gstack-upgrade', 'migrations', 'v1.1.3.0.sh');
+const testSymlink = process.platform === 'win32' ? test.skip : test;
 
 function runMigration(tmpHome: string): { exitCode: number; stdout: string; stderr: string } {
   const result = spawnSync('bash', [MIGRATION], {
@@ -39,7 +40,7 @@ describe('migration v1.1.3.0 — checkpoint ownership guard', () => {
     try { fs.rmSync(tmpHome, { recursive: true, force: true }); } catch {}
   });
 
-  test('scenario A: directory symlink into gstack → removed', () => {
+  testSymlink('scenario A: directory symlink into gstack → removed', () => {
     setupFakeGstackRoot(tmpHome);
     const skillsDir = path.join(tmpHome, '.claude', 'skills');
     const gstackCheckpoint = path.join(skillsDir, 'gstack', 'checkpoint');
@@ -54,7 +55,7 @@ describe('migration v1.1.3.0 — checkpoint ownership guard', () => {
     expect(result.stdout).toContain('Removed stale /checkpoint symlink');
   });
 
-  test('scenario B: directory with SKILL.md symlinked into gstack → removed', () => {
+  testSymlink('scenario B: directory with SKILL.md symlinked into gstack → removed', () => {
     setupFakeGstackRoot(tmpHome);
     const skillsDir = path.join(tmpHome, '.claude', 'skills');
     const gstackSKILL = path.join(skillsDir, 'gstack', 'checkpoint', 'SKILL.md');
@@ -86,7 +87,7 @@ describe('migration v1.1.3.0 — checkpoint ownership guard', () => {
     expect(result.stdout).toContain('not a gstack-owned install');
   });
 
-  test('scenario D: symlink pointing outside gstack → preserved', () => {
+  testSymlink('scenario D: symlink pointing outside gstack → preserved', () => {
     setupFakeGstackRoot(tmpHome);
     const skillsDir = path.join(tmpHome, '.claude', 'skills');
     const topLevel = path.join(skillsDir, 'checkpoint');
@@ -127,7 +128,7 @@ describe('migration v1.1.3.0 — checkpoint ownership guard', () => {
     expect(result.exitCode).toBe(0);
   });
 
-  test('scenario G: SKILL.md is a symlink pointing outside gstack → preserved', () => {
+  testSymlink('scenario G: SKILL.md is a symlink pointing outside gstack → preserved', () => {
     setupFakeGstackRoot(tmpHome);
     const skillsDir = path.join(tmpHome, '.claude', 'skills');
     const topLevel = path.join(skillsDir, 'checkpoint');

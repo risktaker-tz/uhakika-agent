@@ -21,7 +21,7 @@ import * as os from 'os';
 import { spawnSync } from 'child_process';
 
 const ROOT = path.resolve(import.meta.dir, '..');
-const HOOK = path.join(ROOT, 'hosts', 'claude', 'hooks', 'question-log-hook');
+const HOOK = path.join(ROOT, 'hosts', 'claude', 'hooks', 'question-log-hook.ts');
 
 let stateRoot: string;
 
@@ -43,7 +43,7 @@ function runHook(stdin: object): { stdout: string; stderr: string; status: numbe
   env.GSTACK_STATE_ROOT = stateRoot;
   delete env.GSTACK_HOME;
   env.GSTACK_QUESTION_LOG_NO_DERIVE = '1';
-  const res = spawnSync(HOOK, [], {
+  const res = spawnSync(process.execPath, [HOOK], {
     env,
     input: JSON.stringify(stdin),
     encoding: 'utf-8',
@@ -260,7 +260,7 @@ describe('PostToolUse hook (crash safety)', () => {
     }
     env.GSTACK_STATE_ROOT = stateRoot;
     env.GSTACK_QUESTION_LOG_NO_DERIVE = '1';
-    const res = spawnSync(HOOK, [], { env, input: '', encoding: 'utf-8' });
+    const res = spawnSync(process.execPath, [HOOK], { env, input: '', encoding: 'utf-8' });
     expect(res.status).toBe(0);
   });
 
@@ -271,7 +271,7 @@ describe('PostToolUse hook (crash safety)', () => {
     }
     env.GSTACK_STATE_ROOT = stateRoot;
     env.GSTACK_QUESTION_LOG_NO_DERIVE = '1';
-    const res = spawnSync(HOOK, [], {
+    const res = spawnSync(process.execPath, [HOOK], {
       env,
       input: 'not json',
       encoding: 'utf-8',

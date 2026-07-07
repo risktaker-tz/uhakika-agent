@@ -2,7 +2,7 @@
 name: gstack
 preamble-tier: 1
 version: 1.2.0
-description: Router for the UHAKIKA AGENT skill suite. Uses the legacy gstack command name for compatibility.
+description: Router for the UHAKIKA AGENT skill suite.
 allowed-tools:
   - Bash
   - Read
@@ -23,10 +23,9 @@ triggers:
 
 ## When to invoke this skill
 
-Sends any UHAKIKA AGENT request to the right skill
-(planning, review, QA, shipping, debugging, docs, security, design). For browser/QA
-and verification it points you at /browse. Use when you invoke UHAKIKA AGENT without a specific
-skill, or ask "which UHAKIKA skill fits this?". The `gstack` name remains the runtime compatibility alias.
+Sends any UHAKIKA AGENT request to
+the right skill (planning, review, QA, shipping, debugging, docs, security,
+design). The legacy gstack runtime name is retained for compatibility.
 
 ## Preamble (run first)
 
@@ -537,7 +536,7 @@ Skills that run plan reviews (`/plan-*-review`, `/codex review`) include the EXI
 
 ## Route first
 
-This is the gstack router. Its one job is to send the request to the right skill.
+This is the UHAKIKA AGENT router. Its one job is to send the request to the right skill. The runtime command name remains `gstack` for compatibility with upstream scripts and generated paths.
 
 1. If the request is about a browser, QA, dogfooding, screenshots, or inspecting a page
    (open a site, test a deploy, take a screenshot, check a flow visually) → invoke `/browse`.
@@ -550,7 +549,7 @@ directly, no skill matched):
 ~/.claude/skills/gstack/bin/gstack-telemetry-log --event-type route --skill gstack --outcome ROUTE_OUTCOME --session-id "$_SESSION_ID" 2>/dev/null || true
 ```
 
-If `PROACTIVE` is `false`: do NOT proactively invoke or suggest other gstack skills during
+If `PROACTIVE` is `false`: do NOT proactively invoke or suggest other UHAKIKA AGENT skills during
 this session. Only run skills the user explicitly invokes. This preference persists across
 sessions via `gstack-config`.
 
@@ -584,7 +583,7 @@ quality gates that produce better results than answering inline.
 - User asks for a second opinion, codex review → invoke `/codex`
 - User asks for safety mode, careful mode → invoke `/careful` or `/guard`
 - User asks to restrict edits to a directory → invoke `/freeze` or `/unfreeze`
-- User asks to upgrade gstack → invoke `/gstack-upgrade`
+- User asks to upgrade UHAKIKA AGENT or the compatibility runtime → invoke `/gstack-upgrade`
 - User asks to save progress, checkpoint, "save my work" → invoke `/context-save`
 - User asks to resume, restore, "where was I" → invoke `/context-restore`
 - User asks about security, OWASP, vulnerabilities, "is this secure" → invoke `/cso`
@@ -592,7 +591,7 @@ quality gates that produce better results than answering inline.
 - User asks to launch a real browser for QA, "open the browser" → invoke `/open-gstack-browser`
 - User asks to import cookies for authenticated testing → invoke `/setup-browser-cookies`
 - User asks about page speed, performance regression, benchmarks → invoke `/benchmark`
-- User asks what gstack has learned, "show learnings" → invoke `/learn`
+- User asks what UHAKIKA AGENT has learned, "show learnings" → invoke `/learn`
 - User asks to tune question sensitivity, "stop asking me that" → invoke `/plan-tune`
 - User asks for code quality dashboard, "health check" → invoke `/health`
 

@@ -2,6 +2,7 @@ import { describe, test, expect, beforeEach, beforeAll, afterAll } from 'bun:tes
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { fileURLToPath } from 'url';
 import {
   buildFetchHandler,
   __resetShuttingDown,
@@ -192,10 +193,9 @@ describe('buildFetchHandler ownsTerminalAgent gate', () => {
     expect(readIfExists(PORT_FILE)).toBeNull();
     expect(readIfExists(TOKEN_FILE)).toBeNull();
     expect(readIfExists(AGENT_RECORD_FILE)).toBeNull();
-    // isProcessAlive sends signal 0; PID is the sentinel-dead PID, so the
-    // probe returns false and no SIGTERM is sent.
+    // POSIX isProcessAlive sends signal 0; Windows uses tasklist instead.
     const probes = calls.filter(([pid, sig]) => pid === SENTINEL_DEAD_PID && sig === 0);
-    expect(probes.length).toBeGreaterThan(0);
+    if (process.platform !== 'win32') expect(probes.length).toBeGreaterThan(0);
     expect(terminationCalls(calls).length).toBe(0);
   });
 
@@ -210,14 +210,15 @@ describe('buildFetchHandler ownsTerminalAgent gate', () => {
     expect(readIfExists(TOKEN_FILE)).toBeNull();
     expect(readIfExists(AGENT_RECORD_FILE)).toBeNull();
     const probes = calls.filter(([pid, sig]) => pid === SENTINEL_DEAD_PID && sig === 0);
-    expect(probes.length).toBeGreaterThan(0);
+    if (process.platform !== 'win32') expect(probes.length).toBeGreaterThan(0);
+    expect(terminationCalls(calls).length).toBe(0);
   });
 
   test('4. CLI start() call site passes ownsTerminalAgent: true literally (static grep)', () => {
     // Resolves browse/src/server.ts relative to this test file so the test
     // works regardless of cwd. import.meta.url is the test file's URL.
     const serverTsPath = path.resolve(
-      new URL(import.meta.url).pathname,
+      fileURLToPath(import.meta.url),
       '..',
       '..',
       'src',

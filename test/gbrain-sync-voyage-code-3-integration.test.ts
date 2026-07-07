@@ -44,7 +44,14 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { spawnSync } from "child_process";
 
-const gbrainPath = spawnSync("which", ["gbrain"], { encoding: "utf-8" }).stdout.trim();
+function findCommand(name: string): string {
+  const probe = process.platform === "win32"
+    ? spawnSync("where.exe", [name], { encoding: "utf-8" })
+    : spawnSync("which", [name], { encoding: "utf-8" });
+  return (probe.stdout ?? "").split(/\r?\n/)[0]?.trim() ?? "";
+}
+
+const gbrainPath = findCommand("gbrain");
 const gbrainAvailable = gbrainPath.length > 0;
 const voyageKey = process.env.VOYAGE_API_KEY?.trim() ?? "";
 const voyageKeyPresent = voyageKey.length > 0;

@@ -195,4 +195,43 @@ export const SKILL_COVERAGE: Record<string, SkillCoverage> = {
   health: { gate: ['test/skill-coverage-floor.test.ts'], periodic: [] },
   'make-pdf': { gate: ['test/skill-coverage-floor.test.ts'], periodic: [] },
   'devex-review': { gate: ['test/skill-coverage-floor.test.ts'], periodic: [] },
+
+  // UHAKIKA extension skills. Structural floor coverage ensures each
+  // general-purpose skill remains installable and well-formed; deeper
+  // behavioral evals can be added as the delivery layer matures.
+  'uhakika-mission-architect': {
+    gate: ['test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'UHAKIKA general-purpose mission clarification skill; structural gate pins manifest/docs shape.',
+  },
+  'uhakika-reality-checker': {
+    gate: ['test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'UHAKIKA general-purpose assumption review skill; structural gate pins manifest/docs shape.',
+  },
+  'uhakika-security-gate': {
+    gate: ['test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'UHAKIKA general-purpose security review skill; structural gate pins manifest/docs shape.',
+  },
+  'uhakika-delivery-manager': {
+    gate: ['test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'UHAKIKA general-purpose delivery coordination skill; structural gate pins manifest/docs shape.',
+  },
+  'uhakika-systems-integrator': {
+    gate: ['test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'UHAKIKA general-purpose integration skill; structural gate pins manifest/docs shape.',
+  },
+  'uhakika-quality-auditor': {
+    gate: ['test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'UHAKIKA general-purpose quality audit skill; structural gate pins manifest/docs shape.',
+  },
+  'uhakika-docs-writer': {
+    gate: ['test/skill-coverage-floor.test.ts'],
+    periodic: [],
+    rationale: 'UHAKIKA general-purpose documentation skill; structural gate pins manifest/docs shape.',
+  },
 };

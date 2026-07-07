@@ -80,7 +80,7 @@ function regenAndSnapshot(opts: {
   if (opts.respectDetection) args.push('--respect-detection');
 
   try {
-    execFileSync('bun', args, {
+    execFileSync(process.execPath, args, {
       cwd: REPO_ROOT,
       env: { ...process.env, GSTACK_HOME: opts.tmpHome },
       stdio: ['ignore', 'pipe', 'pipe'],

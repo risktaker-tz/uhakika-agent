@@ -33,7 +33,7 @@ describe('gen-skill-docs --out-dir (B2 render isolation)', () => {
       );
 
       const res = spawnSync(
-        'bun',
+        process.execPath,
         ['run', 'scripts/gen-skill-docs.ts', '--respect-detection', '--host', 'claude', '--out-dir', outDir],
         { cwd: ROOT, encoding: 'utf-8', timeout: 120_000, env: { ...process.env, GSTACK_HOME: tmpHome } },
       );
@@ -70,7 +70,7 @@ describe('gen-skill-docs --out-dir (B2 render isolation)', () => {
     const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-out-'));
     try {
       const res = spawnSync(
-        'bun',
+        process.execPath,
         ['run', 'scripts/gen-skill-docs.ts', '--host', 'claude', '--out-dir', outDir],
         { cwd: ROOT, encoding: 'utf-8', timeout: 120_000 },
       );

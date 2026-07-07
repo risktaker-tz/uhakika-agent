@@ -15,10 +15,22 @@ import { spawnSync } from 'child_process';
 
 const ROOT = path.resolve(import.meta.dir, '..');
 const HOOK = path.join(ROOT, 'hosts', 'claude', 'hooks', 'question-preference-hook');
+const BASH = findGitBash();
 
 let stateRoot: string;
 let fixtureCwd: string;
 let cwdSlug: string;
+
+function findGitBash(): string {
+  for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+    const candidate = path.join(dir, process.platform === 'win32' ? 'bash.exe' : 'bash');
+    if (!fs.existsSync(candidate)) continue;
+    if (process.platform !== 'win32' || /[\\/]Git[\\/](bin|usr[\\/]bin)[\\/]bash\.exe$/i.test(candidate)) {
+      return candidate;
+    }
+  }
+  return 'bash';
+}
 
 beforeEach(() => {
   stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gstack-memcache-'));
@@ -48,7 +60,7 @@ function runHook(stdin: object): { stdout: string; stderr: string; status: numbe
   // set) doesn't flip the hook into the [conductor] prose deny instead of defer.
   delete env.CONDUCTOR_WORKSPACE_PATH;
   delete env.CONDUCTOR_PORT;
-  const res = spawnSync(HOOK, [], {
+  const res = spawnSync(BASH, [HOOK], {
     env,
     input: JSON.stringify({ ...stdin, cwd: fixtureCwd }),
     encoding: 'utf-8',

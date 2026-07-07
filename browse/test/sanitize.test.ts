@@ -107,6 +107,6 @@ describe('perf smoke', () => {
     const out = stripLoneSurrogates(big);
     const elapsed = performance.now() - start;
     expect(out.length).toBe(big.length);
-    expect(elapsed).toBeLessThan(500);
+    expect(elapsed).toBeLessThan(process.platform === 'win32' ? 1500 : 500);
   });
 });

@@ -69,13 +69,22 @@ describe("end-to-end with a fake gbrain shim", () => {
   let homeDir: string;
 
   function writeShim(body: string): void {
+    if (process.platform === "win32") {
+      const script = path.join(binDir, "gbrain.sh");
+      const wrapper = path.join(binDir, "gbrain.cmd");
+      fs.writeFileSync(script, body, { mode: 0o755 });
+      fs.writeFileSync(wrapper, '@bash "%~dp0gbrain.sh" %*\r\n', { mode: 0o755 });
+      fs.chmodSync(script, 0o755);
+      fs.chmodSync(wrapper, 0o755);
+      return;
+    }
     const p = path.join(binDir, "gbrain");
     fs.writeFileSync(p, body, { mode: 0o755 });
     fs.chmodSync(p, 0o755);
   }
   function env(): NodeJS.ProcessEnv {
     // Keep the real PATH so /usr/bin/env + bash resolve; prepend the shim dir.
-    return { PATH: `${binDir}:${process.env.PATH}`, HOME: homeDir };
+    return { PATH: `${binDir}${path.delimiter}${process.env.PATH}`, HOME: homeDir };
   }
 
   beforeEach(() => {

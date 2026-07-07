@@ -9,6 +9,7 @@ import { join } from 'path';
 
 const REPO_ROOT = new URL('..', import.meta.url).pathname;
 const MIGRATION = join(REPO_ROOT, 'gstack-upgrade', 'migrations', 'v1.38.1.0.sh');
+const describePosix = process.platform === 'win32' ? describe.skip : describe;
 
 function setupFakeHome(): string {
   const dir = mkdtempSync(join(tmpdir(), 'mig-v1340-'));
@@ -30,7 +31,7 @@ function runMigration(fakeHome: string): { code: number; stdout: string; stderr:
   };
 }
 
-describe('v1.38.1.0 migration', () => {
+describePosix('v1.38.1.0 migration', () => {
   test('adds patterns to allowlist before USER ADDITIONS marker', () => {
     const home = setupFakeHome();
     try {
@@ -225,7 +226,7 @@ function runMigrationV140(fakeHome: string): { code: number; stdout: string; std
   };
 }
 
-describe('v1.40.0.0 migration', () => {
+describePosix('v1.40.0.0 migration', () => {
   test('adds eng-review-test-plan pattern to allowlist on top of an installed v1.38.1.0 state', () => {
     const home = setupFakeHome();
     try {

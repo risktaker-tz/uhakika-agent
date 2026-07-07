@@ -35,7 +35,7 @@ afterEach(() => {
 });
 
 function runScript(cwd: string): { stdout: string; stderr: string; status: number } {
-  const res = spawnSync('bun', ['run', SCRIPT], {
+  const res = spawnSync(process.execPath, ['run', SCRIPT], {
     encoding: 'utf-8',
     cwd,
     env: { ...process.env },

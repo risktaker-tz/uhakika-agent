@@ -22,12 +22,24 @@ import { spawnSync } from "node:child_process";
 
 const ROOT = path.resolve(import.meta.dir, "..");
 const SCRIPT = path.join(ROOT, "scripts/build-app.sh");
+const BASH = findGitBash();
 
-describe("PR #1169 bug #2: build-app.sh sed escape for $APP_NAME", () => {
-  test("escape sequence produces sed-safe output for `&`, `/`, `\\` in APP_NAME", () => {
+function findGitBash(): string {
+  for (const dir of (process.env.PATH || "").split(path.delimiter)) {
+    const candidate = path.join(dir, process.platform === "win32" ? "bash.exe" : "bash");
+    if (!fs.existsSync(candidate)) continue;
+    if (process.platform !== "win32" || /[\\/]Git[\\/](bin|usr[\\/]bin)[\\/]bash\.exe$/i.test(candidate)) {
+      return candidate;
+    }
+  }
+  return "bash";
+}
+
+describe("PR #1169 bug #2: build-app.sh safe rebrand for $APP_NAME", () => {
+  test("replacement flow preserves `&`, `/`, `\\` in APP_NAME", () => {
     // Mirror the script's escape sequence and run it in isolation against a
     // hostile name. The escape sequence at line ~98 is:
-    //   APP_NAME_SED_ESCAPED=$(printf '%s' "$APP_NAME" | sed 's/[&/\]/\\&/g')
+    //   APP_NAME_SED_ESCAPED=$(printf '%s' "$APP_NAME" | perl -pe 's/\\/\\\\/g; s/&/\\\&/g; s!/!\\\\/!g')
     // We assert the resulting string can then be used as a sed replacement
     // safely — round-trip via a real `sed s///` against a stub strings file.
 
@@ -45,12 +57,14 @@ describe("PR #1169 bug #2: build-app.sh sed escape for $APP_NAME", () => {
       // of `sed s/<needle>/<replacement>/g`, results in the literal appName
       // appearing in the output.
       const result = spawnSync(
-        "bash",
+        BASH,
         ["-c",
           `set -eu
-           APP_NAME="$1"
-           APP_NAME_SED_ESCAPED=$(printf '%s' "$APP_NAME" | sed 's/[&/\\]/\\\\&/g')
-           printf 'Google Chrome for Testing' | sed "s/Google Chrome for Testing/\${APP_NAME_SED_ESCAPED}/g"
+           tmp=$(mktemp)
+           printf 'Google Chrome for Testing' > "$tmp"
+           APP_NAME_FOR_REBRAND="$1" perl -0pi -e 's/Google Chrome for Testing/$ENV{APP_NAME_FOR_REBRAND}/g' "$tmp"
+           cat "$tmp"
+           rm -f "$tmp"
           `,
           "_",
           appName,
@@ -58,21 +72,21 @@ describe("PR #1169 bug #2: build-app.sh sed escape for $APP_NAME", () => {
         { encoding: "utf-8" }
       );
 
-      expect(result.status).toBe(0);
+      expect(result.status, `appName=${appName}\nstdout=${result.stdout}\nstderr=${result.stderr}`).toBe(0);
       expect(result.stdout).toBe(appName);
       expect(result.stderr).toBe("");
     }
   });
 
-  test("script body still routes APP_NAME through the escape helper before sed", () => {
+  test("script body routes APP_NAME through the environment-backed replacement", () => {
     // Belt-and-braces static check: the rebrand block must contain BOTH the
     // escape line and the sed line referencing the escaped variable.
     const body = fs.readFileSync(SCRIPT, "utf-8");
-    expect(body).toMatch(/APP_NAME_SED_ESCAPED=\$\(printf '%s' "\$APP_NAME" \| sed/);
-    expect(body).toMatch(/sed -i ''\s*"s\/Google Chrome for Testing\/\$\{APP_NAME_SED_ESCAPED\}\/g"/);
+    expect(body).toContain('APP_NAME_FOR_REBRAND="$APP_NAME" perl -0pi -e');
+    expect(body).toContain('$ENV{APP_NAME_FOR_REBRAND}');
   });
 
-  test("no bare `$APP_NAME` interpolation directly into the rebrand sed", () => {
+  test("no bare `$APP_NAME` interpolation directly into replacement syntax", () => {
     // Ensure no future refactor reintroduces the bug by interpolating
     // $APP_NAME straight into the s/// replacement.
     const body = fs.readFileSync(SCRIPT, "utf-8");
@@ -144,11 +158,11 @@ describe("PR #1169 bug #3: build-app.sh DMG_TMP mktemp failure guard", () => {
     ].join('\n');
 
     const result = spawnSync(
-      "bash",
+      BASH,
       ["-c", guardScript],
       {
         encoding: "utf-8",
-        env: { ...process.env, PATH: `${fakeBin}:${process.env.PATH}` },
+        env: { ...process.env, PATH: `${fakeBin}${path.delimiter}${process.env.PATH}` },
       }
     );
 

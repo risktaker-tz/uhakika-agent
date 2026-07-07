@@ -99,8 +99,8 @@
       "voice_line": null
     },
     "gstack": {
-      "lead": "Router for the gstack skill suite.",
-      "routing": "Sends any gstack request to the right skill\n(planning, review, QA, shipping, debugging, docs, security, design). For browser/QA\nand dogfooding it points you at /browse. Use when you invoke gstack without a specific\nskill, or ask \"which gstack skill fits this?\".",
+      "lead": "Router for the UHAKIKA AGENT skill suite.",
+      "routing": "Sends any UHAKIKA AGENT request to\nthe right skill (planning, review, QA, shipping, debugging, docs, security,\ndesign). The legacy gstack runtime name is retained for compatibility.",
       "voice_line": null
     },
     "gstack-upgrade": {

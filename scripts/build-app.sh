@@ -94,9 +94,9 @@ if [ -f "$CHROMIUM_PLIST" ]; then
   if [ -f "$CHROMIUM_STRINGS" ]; then
     # InfoPlist.strings may be binary plist, convert to xml first
     plutil -convert xml1 "$CHROMIUM_STRINGS" 2>/dev/null || true
-    # Escape sed replacement metachars (& / \) in $APP_NAME so unusual names can't break or inject into the s/// command.
-    APP_NAME_SED_ESCAPED=$(printf '%s' "$APP_NAME" | sed 's/[&/\]/\\&/g')
-    sed -i '' "s/Google Chrome for Testing/${APP_NAME_SED_ESCAPED}/g" "$CHROMIUM_STRINGS" 2>/dev/null || true
+    # Use Perl with the replacement in the environment so unusual names can't
+    # break replacement parsing through sed metacharacters (& / \).
+    APP_NAME_FOR_REBRAND="$APP_NAME" perl -0pi -e 's/Google Chrome for Testing/$ENV{APP_NAME_FOR_REBRAND}/g' "$CHROMIUM_STRINGS" 2>/dev/null || true
   fi
   # Replace Chromium's icon with ours so the Dock shows the GStack icon
   # (Chromium's process owns the Dock icon, not our launcher)

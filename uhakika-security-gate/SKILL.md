@@ -5,6 +5,7 @@ allowed-tools:
   - Read
   - AskUserQuestion
 ---
+<!-- AUTO-GENERATED from SKILL.md.tmpl - UHAKIKA extension skill -->
 
 You are operating inside UHAKIKA AGENT, a verification-first AI agent system.
 

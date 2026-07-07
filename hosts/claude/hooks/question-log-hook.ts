@@ -36,7 +36,6 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { spawnSync } from 'child_process';
 
 interface HookStdin {
   session_id?: string;
@@ -68,15 +67,20 @@ interface ExtractedQuestion {
 const MARKER_RE = /<gstack-qid:([a-z0-9-]{1,64})>/i;
 const RECOMMENDED_LABEL_RE = /\(recommended\)\s*$/i;
 
+function stateRoot(): string {
+  return (
+    process.env.GSTACK_STATE_ROOT ||
+    process.env.GSTACK_HOME ||
+    path.join(os.homedir(), '.gstack')
+  );
+}
+
 function logHookError(msg: string): void {
   try {
-    const stateRoot =
-      process.env.GSTACK_STATE_ROOT ||
-      process.env.GSTACK_HOME ||
-      path.join(os.homedir(), '.gstack');
-    fs.mkdirSync(stateRoot, { recursive: true });
+    const root = stateRoot();
+    fs.mkdirSync(root, { recursive: true });
     fs.appendFileSync(
-      path.join(stateRoot, 'hook-errors.log'),
+      path.join(root, 'hook-errors.log'),
       `${new Date().toISOString()} question-log-hook: ${msg}\n`,
     );
   } catch {
@@ -204,22 +208,34 @@ function detectSkill(cwd: string | undefined): string {
   return 'unknown';
 }
 
-function spawnLog(payload: Record<string, unknown>, cwd?: string): void {
-  // Locate the bin relative to this script's directory.
-  const here = path.dirname(new URL(import.meta.url).pathname);
-  // hosts/claude/hooks/ -> ../../../bin/
-  const repoRoot = path.resolve(here, '..', '..', '..');
-  const bin = path.join(repoRoot, 'bin', 'gstack-question-log');
-  const res = spawnSync(bin, [JSON.stringify(payload)], {
-    encoding: 'utf-8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-    timeout: 3000,
-    // Run from the originating tool call's cwd so gstack-slug resolves to
-    // the project the user is actually in, not the hook script's location.
-    cwd: cwd && fs.existsSync(cwd) ? cwd : undefined,
-  });
-  if (res.status !== 0) {
-    logHookError(`gstack-question-log exited ${res.status}: ${res.stderr || res.stdout}`);
+function slugFromCwd(cwd?: string): string {
+  const base = cwd && fs.existsSync(cwd) ? path.basename(cwd) : 'unknown-project';
+  return base.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'unknown-project';
+}
+
+function appendLog(payload: Record<string, unknown>, cwd?: string): void {
+  try {
+    const dir = path.join(stateRoot(), 'projects', slugFromCwd(cwd));
+    fs.mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, 'question-log.jsonl');
+
+    if (payload.source && payload.tool_use_id && fs.existsSync(file)) {
+      const source = String(payload.source);
+      const toolUseId = String(payload.tool_use_id);
+      const existing = fs.readFileSync(file, 'utf-8').split('\n').filter(Boolean);
+      for (const line of existing) {
+        try {
+          const row = JSON.parse(line);
+          if (row.source === source && row.tool_use_id === toolUseId) return;
+        } catch {
+          // Ignore malformed historical rows.
+        }
+      }
+    }
+
+    fs.appendFileSync(file, JSON.stringify({ ts: new Date().toISOString(), ...payload }) + '\n');
+  } catch (e) {
+    logHookError(`append failed: ${(e as Error).message}`);
   }
 }
 
@@ -277,7 +293,7 @@ async function main(): Promise<void> {
     if (recommended) payload.recommended = recommended.slice(0, 64);
     if (choice.free_text) payload.free_text = String(choice.free_text);
 
-    spawnLog(payload, stdin.cwd);
+    appendLog(payload, stdin.cwd);
   }
 
   process.exit(0);

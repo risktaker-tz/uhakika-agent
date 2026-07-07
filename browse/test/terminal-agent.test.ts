@@ -151,9 +151,12 @@ describe('Source-level guard: terminal-agent', () => {
       AGENT_SRC.indexOf("websocket: {"),
     );
     expect(upgradeBlock).not.toContain('spawnClaude(');
-    // Spawn must be invoked from the message handler (lazy on first byte).
+    // Spawn must be invoked from the message handler through the shared
+    // maybeSpawnPty helper (lazy on first byte / explicit start).
     const messageHandler = AGENT_SRC.slice(AGENT_SRC.indexOf('message(ws, raw)'));
-    expect(messageHandler).toContain('spawnClaude(');
+    expect(messageHandler).toContain('maybeSpawnPty(ws, session)');
+    const spawnHelper = AGENT_SRC.slice(AGENT_SRC.indexOf('function maybeSpawnPty'));
+    expect(spawnHelper).toContain('spawnClaude(');
     expect(messageHandler).toContain('!session.spawned');
   });
 
